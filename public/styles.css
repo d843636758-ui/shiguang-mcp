@@ -37,10 +37,13 @@ button { color: inherit; }
 .lock-copy { margin: 0 auto 32px; color: var(--ink-soft); }
 .unlock-form { text-align: left; }
 .unlock-form label, label > span { display: block; font-size: .82rem; color: var(--ink-soft); margin-bottom: 7px; }
-.input-row { display: grid; grid-template-columns: 1fr auto; border-bottom: 1px solid var(--ink); }
-.input-row input { border: 0; background: transparent; padding: 12px 4px; outline: none; min-width: 0; letter-spacing: .15em; }
-.input-row button { border: 0; background: transparent; padding: 10px 4px 10px 18px; cursor: pointer; color: var(--moss-dark); font-weight: 600; }
-.form-error { color: #a44137; font-size: .84rem; min-height: 1.4em; margin: 8px 0 0; }
+.input-row { display: grid; gap: 12px; }
+.input-row input { width: 100%; border: 1px solid var(--line); border-radius: var(--radius-sm); background: var(--paper); padding: 13px 14px; outline: none; min-width: 0; letter-spacing: .15em; }
+.input-row input:focus { border-color: var(--moss); box-shadow: 0 0 0 3px rgba(79,114,94,.1); }
+.input-row button { border: 0; border-radius: var(--radius-sm); background: var(--moss-dark); color: var(--white); padding: 13px 18px; cursor: pointer; font-weight: 600; transition: transform .18s ease, opacity .18s ease; }
+.input-row button:hover { transform: translateY(-1px); }
+.input-row button:disabled { opacity: .64; cursor: wait; transform: none; }
+.form-error { color: #a44137; font-size: .84rem; min-height: 1.4em; margin: 9px 0 0; font-weight: 500; }
 
 main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .topbar { min-height: 96px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
