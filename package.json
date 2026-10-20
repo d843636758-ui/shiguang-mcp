@@ -1,0 +1,15 @@
+{
+  "name": "shiguang-mcp",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "食光曲线：私密的餐食照片、热量估算与血糖记录 MCP",
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test",
+    "check": "node --check src/server.js && node --check src/db.js && node --check src/mcp.js && node --check public/app.js"
+  },
+  "engines": {
+    "node": ">=22.13"
+  }
+}
