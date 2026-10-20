@@ -1,0 +1,15 @@
+services:
+  shiguang:
+    build: .
+    container_name: shiguang-mcp
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./data:/data
+    networks:
+      - mcp-edge
+
+networks:
+  mcp-edge:
+    external: true
+
