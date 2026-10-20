@@ -27,9 +27,12 @@ function showToast(message) {
 
 function openDialog(id) {
   const dialog = document.getElementById(id);
-  if (id === 'mealDialog') dialog.elements.eaten_at.value = localInputTime();
-  if (id === 'glucoseDialog') dialog.elements.measured_at.value = localInputTime();
-  dialog.showModal();
+  const timeField = id === 'mealDialog'
+    ? dialog.querySelector('[name="eaten_at"]')
+    : dialog.querySelector('[name="measured_at"]');
+  if (timeField) timeField.value = localInputTime();
+  if (typeof dialog.showModal === 'function') dialog.showModal();
+  else dialog.setAttribute('open', '');
 }
 
 async function compressPhoto(file) {
