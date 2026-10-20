@@ -109,9 +109,19 @@ async function initialize() {
 }
 
 $('#loginForm').addEventListener('submit', async (event) => {
-  event.preventDefault(); const error = $('#loginError'); error.textContent = '';
-  try { await request('/api/login', { method:'POST', body:JSON.stringify({ password:event.currentTarget.password.value }) }); $('#lockScreen').hidden = true; $('#app').hidden = false; await loadDashboard(); }
-  catch (cause) { error.textContent = cause.message; }
+  event.preventDefault();
+  const form = event.currentTarget; const error = $('#loginError'); const button = $('button[type="submit"]', form);
+  error.textContent = '';
+  if (!form.password.value) { error.textContent = '先输入暗号，门才会打开。'; form.password.focus(); return; }
+  button.disabled = true; button.textContent = '正在开门…'; form.setAttribute('aria-busy', 'true');
+  try {
+    await request('/api/login', { method:'POST', body:JSON.stringify({ password:form.password.value }) });
+    $('#lockScreen').hidden = true; $('#app').hidden = false; await loadDashboard();
+  } catch (cause) {
+    error.textContent = cause.message;
+  } finally {
+    button.disabled = false; button.textContent = '推门进去'; form.removeAttribute('aria-busy');
+  }
 });
 
 $('#logoutButton').addEventListener('click', async () => { await request('/api/logout', { method:'POST' }); location.reload(); });
