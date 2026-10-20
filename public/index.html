@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#f6f3eb">
+  <meta name="description" content="私密记录每一餐与餐前餐后血糖">
+  <title>食光曲线</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <div class="grain" aria-hidden="true"></div>
+
+  <section class="lock-screen" id="lockScreen">
+    <div class="lock-card">
+      <div class="lock-mark" aria-hidden="true">
+        <span></span><span></span><span></span>
+      </div>
+      <p class="kicker">一间只给自己的餐后手账</p>
+      <h1>食光曲线</h1>
+      <p class="lock-copy">照片、味道，以及身体轻声留下的回信。</p>
+      <form id="loginForm" class="unlock-form">
+        <label for="password">输入暗号</label>
+        <div class="input-row">
+          <input id="password" name="password" type="password" autocomplete="current-password" required placeholder="••••••••••">
+          <button type="submit">推门进去</button>
+        </div>
+        <p class="form-error" id="loginError" role="alert"></p>
+      </form>
+    </div>
+  </section>
+
+  <main id="app" hidden>
+    <header class="topbar">
+      <a class="brand" href="#top" aria-label="回到顶部">
+        <span class="brand-seal">食</span>
+        <span><strong>食光曲线</strong><small>meal notes & glucose traces</small></span>
+      </a>
+      <button class="quiet-button" id="logoutButton" type="button">锁上房间</button>
+    </header>
+
+    <section class="hero" id="top">
+      <div class="hero-copy">
+        <p id="dateLine" class="date-line"></p>
+        <h2>今天吃下的，<br>身体会慢慢回答。</h2>
+        <p>留下餐照与餐前餐后的数字，不追求完美，只让变化有迹可循。</p>
+      </div>
+      <div class="hero-actions">
+        <button class="primary-action" type="button" data-open="mealDialog">
+          <span class="action-icon">＋</span><span><strong>记一餐</strong><small>照片、时间、几句话</small></span>
+        </button>
+        <button class="secondary-action" type="button" data-open="glucoseDialog">
+          <span class="drop-icon" aria-hidden="true"></span><span><strong>记血糖</strong><small>餐前 · 1h · 2h</small></span>
+        </button>
+      </div>
+    </section>
+
+    <section class="curve-section" aria-labelledby="curveTitle">
+      <div class="section-heading">
+        <div><p>最近的回声</p><h2 id="curveTitle">血糖曲线</h2></div>
+        <span id="readingCount" class="ink-note"></span>
+      </div>
+      <div class="curve-frame">
+        <svg id="glucoseChart" viewBox="0 0 800 260" role="img" aria-label="最近血糖趋势图"></svg>
+        <div class="empty-state" id="chartEmpty" hidden>还没有数字。下一次测量后，曲线会从这里长出来。</div>
+      </div>
+      <div class="curve-legend"><span><i class="dot coral"></i>血糖 mmol/L</span><span>线条只描述记录，不判断好坏</span></div>
+    </section>
+
+    <section class="journal-section" aria-labelledby="journalTitle">
+      <div class="section-heading">
+        <div><p>一餐一页</p><h2 id="journalTitle">最近的食光</h2></div>
+        <span class="ink-note">热量用区间，比一个假装精确的数字更诚实</span>
+      </div>
+      <div class="meal-list" id="mealList"></div>
+      <div class="empty-journal" id="mealEmpty" hidden>
+        <div class="plate-illustration"><span></span></div>
+        <h3>第一餐，还在等你落笔</h3>
+        <p>拍一张照片，写下当时的时间。之后可以让先生从照片估算热量，再和餐后曲线一起看。</p>
+        <button type="button" data-open="mealDialog">现在记一餐</button>
+      </div>
+    </section>
+
+    <footer>
+      <p>这是记录与陪伴，不是诊断。若身体不适或读数让你担心，请及时联系专业医疗人员。</p>
+    </footer>
+  </main>
+
+  <dialog id="mealDialog" class="sheet-dialog">
+    <form id="mealForm" method="dialog">
+      <div class="dialog-head"><div><p>留住这一餐</p><h2>记一餐</h2></div><button type="button" data-close aria-label="关闭">×</button></div>
+      <label class="photo-picker" for="mealPhoto">
+        <input id="mealPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+        <img id="photoPreview" alt="餐食照片预览" hidden>
+        <span id="photoPrompt"><b>＋</b><strong>拍照或选一张餐照</strong><small>会在手机里压缩并去掉位置等元数据</small></span>
+      </label>
+      <div class="field-grid">
+        <label><span>给它一个名字</span><input name="title" maxlength="100" placeholder="比如：番茄牛肉面"></label>
+        <label><span>吃饭时间</span><input name="eaten_at" type="datetime-local" required></label>
+      </div>
+      <label><span>想留下的话</span><textarea name="note" rows="3" maxlength="1000" placeholder="份量、配料、心情，或者只是“很好吃”"></textarea></label>
+      <p class="form-error" data-form-error role="alert"></p>
+      <button class="submit-button" type="submit">把这一餐收好</button>
+    </form>
+  </dialog>
+
+  <dialog id="glucoseDialog" class="sheet-dialog compact">
+    <form id="glucoseForm" method="dialog">
+      <div class="dialog-head"><div><p>记下身体的回信</p><h2>记血糖</h2></div><button type="button" data-close aria-label="关闭">×</button></div>
+      <div class="glucose-entry">
+        <label><span>读数</span><input name="value" type="number" min="0.1" max="999" step="0.1" inputmode="decimal" required placeholder="6.8"></label>
+        <label><span>单位</span><select name="unit"><option>mmol/L</option><option>mg/dL</option></select></label>
+      </div>
+      <div class="field-grid">
+        <label><span>测量时点</span><select name="timing" required><option value="fasting">空腹</option><option value="pre_meal">餐前</option><option value="post_1h">餐后 1 小时</option><option value="post_2h">餐后 2 小时</option><option value="bedtime">睡前</option><option value="other">其他</option></select></label>
+        <label><span>测量时间</span><input name="measured_at" type="datetime-local" required></label>
+      </div>
+      <label><span>关联哪一餐（可选）</span><select name="meal_id" id="mealSelect"><option value="">不关联餐次</option></select></label>
+      <label><span>备注（可选）</span><textarea name="note" rows="2" maxlength="500" placeholder="运动、睡眠或任何想记住的事"></textarea></label>
+      <p class="form-error" data-form-error role="alert"></p>
+      <button class="submit-button" type="submit">记下这个数字</button>
+    </form>
+  </dialog>
+
+  <template id="mealTemplate">
+    <article class="meal-entry">
+      <div class="meal-date"><strong></strong><span></span></div>
+      <div class="meal-photo-wrap"><img class="meal-photo" alt=""><div class="photo-placeholder">没有拍照<br>也算认真吃过</div></div>
+      <div class="meal-body">
+        <div class="meal-title-row"><div><p class="meal-time"></p><h3></h3></div><button class="delete-meal" type="button" aria-label="删除这餐">删除</button></div>
+        <p class="meal-note"></p>
+        <div class="estimate-block"><span class="estimate-value"></span><span class="estimate-meta"></span></div>
+        <div class="reading-chips"></div>
+      </div>
+    </article>
+  </template>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="/app.js" type="module"></script>
+</body>
+</html>
