@@ -169,7 +169,8 @@ async function serveStatic(req, res, url) {
   const filePath = join(publicDir, safe);
   if (!filePath.startsWith(publicDir) || !existsSync(filePath)) return json(res, 404, { error: '页面不存在' });
   const bytes = await readFile(filePath);
-  res.writeHead(200, { 'Content-Type': mimeTypes[extname(filePath)] || 'application/octet-stream', 'Cache-Control': filePath.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600' });
+  const isAppAsset = /\.(?:html|css|js)$/.test(filePath);
+  res.writeHead(200, { 'Content-Type': mimeTypes[extname(filePath)] || 'application/octet-stream', 'Cache-Control': isAppAsset ? 'no-cache' : 'public, max-age=3600' });
   res.end(bytes);
 }
 
