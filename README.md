@@ -5,7 +5,9 @@
 - 手机拍照记录一餐，浏览器端压缩并去除 EXIF 元数据
 - 记录空腹、餐前、餐后 1 小时、餐后 2 小时、睡前或其他血糖
 - 将血糖读数与具体餐次关联
+- 在网页中管理并删除单条血糖记录
 - 由支持图片内容的 MCP 客户端读取餐照、估算热量区间和营养构成，再写回记录
+- MCP 读取餐照时动态生成小体积 JPEG 预览；服务器原图与前端原图接口保持不变
 - SQLite 与照片都保存在服务器持久卷；仓库不包含任何健康数据或密钥
 
 ## 本地运行
@@ -15,6 +17,7 @@
 ```bash
 cp .env.example .env
 # 编辑 .env 后
+npm install
 npm start
 ```
 
@@ -39,10 +42,11 @@ docker compose up -d --build
 | --- | --- |
 | `list_meals` | 按时间范围列出餐次与已有估算 |
 | `get_meal` | 获取一餐及关联血糖 |
-| `get_meal_photo` | 返回餐照图像供模型观察 |
+| `get_meal_photo` | 动态返回经过旋转校正与压缩的 JPEG 预览供模型观察 |
 | `save_meal_estimate` | 保存热量区间、宏量营养素和分析说明 |
 | `list_glucose_readings` | 获取血糖时间线 |
 | `add_glucose_reading` | 由对话补记一条血糖 |
+| `delete_glucose_reading` | 按用户明确要求删除一条指定血糖记录 |
 | `get_meal_response` | 查看一餐的餐前/餐后反应 |
 | `get_period_summary` | 汇总一段时间的餐次与血糖数据 |
 

@@ -50,7 +50,7 @@ async function compressPhoto(file) {
 async function loadDashboard() {
   const data = await request('/api/dashboard');
   state.meals = data.meals; state.readings = data.readings;
-  renderMeals(); renderChart(); renderMealOptions();
+  renderMeals(); renderChart(); renderReadingList(); renderMealOptions();
 }
 
 function renderMealOptions() {
@@ -102,6 +102,32 @@ function renderChart() {
   if (readings.length === 1) add('line', { x1: pad.l, x2: width-pad.r, y1:y(values[0]), y2:y(values[0]), stroke:'#dc755f', 'stroke-width':2 });
   else add('path', { d: readings.map((r,i) => `${i?'L':'M'} ${x(i)} ${y(r.value_mmol)}`).join(' '), fill:'none', stroke:'#dc755f', 'stroke-width':3, 'stroke-linecap':'round', 'stroke-linejoin':'round' });
   readings.forEach((r,i) => { add('circle', { cx:x(i), cy:y(r.value_mmol), r:4.5, fill:'#f6f3eb', stroke:'#dc755f', 'stroke-width':2.5 }); if (i===0 || i===readings.length-1 || i % Math.ceil(readings.length/5)===0) add('text', { x:x(i), y:height-17, 'text-anchor':'middle', fill:'#657069', 'font-size':10 }, new Date(r.measured_at).toLocaleDateString('zh-CN',{month:'numeric',day:'numeric'})); });
+}
+
+function renderReadingList() {
+  const list = $('#readingList'); const empty = $('#readingListEmpty');
+  const readings = [...state.readings].sort((a,b) => new Date(b.measured_at) - new Date(a.measured_at));
+  list.replaceChildren(); empty.hidden = readings.length > 0;
+  readings.forEach((reading) => {
+    const row = document.createElement('article'); row.className = 'reading-row';
+    const meal = state.meals.find((item) => item.id === reading.meal_id);
+    const when = new Date(reading.measured_at).toLocaleString('zh-CN', { month:'numeric', day:'numeric', hour:'2-digit', minute:'2-digit' });
+    const details = document.createElement('div'); details.className = 'reading-row-details';
+    const value = document.createElement('strong'); value.textContent = `${reading.value_mmol} mmol/L`;
+    const meta = document.createElement('span');
+    meta.textContent = `${when} · ${timingLabel[reading.timing] || '其他'}${meal ? ` · ${meal.title || '未命名的一餐'}` : ''}`;
+    details.append(value, meta);
+    const button = document.createElement('button'); button.type = 'button'; button.className = 'delete-reading'; button.textContent = '删除';
+    button.setAttribute('aria-label', `删除 ${when} 的血糖记录`);
+    button.addEventListener('click', async () => {
+      if (!confirm(`要删除 ${when} 的这条血糖记录吗？删除后无法恢复。`)) return;
+      try {
+        await request(`/api/glucose/${reading.id}`, { method: 'DELETE' });
+        showToast('这条血糖记录已删除'); await loadDashboard();
+      } catch (cause) { showToast(cause.message); }
+    });
+    row.append(details, button); list.append(row);
+  });
 }
 
 async function initialize() {

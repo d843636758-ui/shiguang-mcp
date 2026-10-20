@@ -1,6 +1,7 @@
-import { readFileSync } from 'node:fs';
+import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import sharp from 'sharp';
 import { listMeals, listReadings, mealWithReadings, normalizeGlucose } from './db.js';
 
 const timingValues = ['fasting', 'pre_meal', 'post_1h', 'post_2h', 'bedtime', 'other'];
@@ -50,6 +51,11 @@ const tools = [
     }
   },
   {
+    name: 'delete_glucose_reading',
+    description: '删除一条指定的血糖记录。仅在用户明确要求删除该条记录时调用。',
+    inputSchema: { type: 'object', properties: { reading_id: { type: 'string' } }, required: ['reading_id'] }
+  },
+  {
     name: 'get_meal_response',
     description: '返回某餐全部关联血糖并计算相对餐前值的变化，供趋势讨论使用，不作诊断。',
     inputSchema: { type: 'object', properties: { meal_id: { type: 'string' } }, required: ['meal_id'] }
@@ -71,7 +77,31 @@ function error(message) {
 
 export function getToolList() { return tools; }
 
-export function callTool(db, dataDir, name, args = {}) {
+const previewPlans = [
+  { size: 1024, quality: 80 },
+  { size: 1024, quality: 75 },
+  { size: 896, quality: 76 },
+  { size: 768, quality: 74 },
+  { size: 640, quality: 70 },
+  { size: 640, quality: 62 },
+  { size: 512, quality: 58 }
+];
+
+export async function createMealPhotoPreview(source, maxBytes = 350 * 1024) {
+  let preview = null;
+  for (const plan of previewPlans) {
+    preview = await sharp(source, { failOn: 'error' })
+      .rotate()
+      .resize({ width: plan.size, height: plan.size, fit: 'inside', withoutEnlargement: true })
+      .flatten({ background: '#fffdf8' })
+      .jpeg({ quality: plan.quality, chromaSubsampling: '4:2:0', progressive: true, mozjpeg: true })
+      .toBuffer();
+    if (preview.length <= maxBytes) break;
+  }
+  return preview;
+}
+
+export async function callTool(db, dataDir, name, args = {}) {
   try {
     if (name === 'list_meals') return text(listMeals(db, args));
     if (name === 'get_meal') {
@@ -82,10 +112,11 @@ export function callTool(db, dataDir, name, args = {}) {
       const meal = db.prepare('SELECT id, title, eaten_at, note, photo_path, photo_mime FROM meals WHERE id = ?').get(args.meal_id);
       if (!meal) return error('未找到这条餐食记录');
       if (!meal.photo_path) return error('这条餐食没有照片');
-      const data = readFileSync(join(dataDir, 'uploads', meal.photo_path)).toString('base64');
+      const original = await readFile(join(dataDir, 'uploads', meal.photo_path));
+      const data = (await createMealPhotoPreview(original)).toString('base64');
       return { content: [
         { type: 'text', text: `餐次 ${meal.id}，时间 ${meal.eaten_at}，标题：${meal.title || '未命名'}。用户备注：${meal.note || '无'}。请以区间表达热量估算，并说明份量、烹饪油和不可见配料带来的不确定性。` },
-        { type: 'image', data, mimeType: meal.photo_mime || 'image/jpeg' }
+        { type: 'image', data, mimeType: 'image/jpeg' }
       ] };
     }
     if (name === 'save_meal_estimate') {
@@ -106,6 +137,10 @@ export function callTool(db, dataDir, name, args = {}) {
         id, args.measured_at, valueMmol, args.timing, args.meal_id || null, String(args.note || ''), new Date().toISOString()
       );
       return text({ saved: true, id, value_mmol: valueMmol });
+    }
+    if (name === 'delete_glucose_reading') {
+      const result = db.prepare('DELETE FROM glucose_readings WHERE id=?').run(args.reading_id);
+      return result.changes ? text({ deleted: true, reading_id: args.reading_id }) : error('未找到这条血糖记录');
     }
     if (name === 'get_meal_response') {
       const meal = mealWithReadings(db, args.meal_id);
@@ -133,13 +168,13 @@ export function callTool(db, dataDir, name, args = {}) {
   }
 }
 
-export function handleMcp(db, dataDir, body) {
+export async function handleMcp(db, dataDir, body) {
   const id = body?.id ?? null;
   const response = (result) => ({ jsonrpc: '2.0', id, result });
-  if (body?.method === 'initialize') return response({ protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'shiguang-mcp', version: '0.1.0' } });
+  if (body?.method === 'initialize') return response({ protocolVersion: '2025-03-26', capabilities: { tools: {} }, serverInfo: { name: 'shiguang-mcp', version: '0.2.0' } });
   if (body?.method === 'ping') return response({});
   if (body?.method === 'tools/list') return response({ tools });
-  if (body?.method === 'tools/call') return response(callTool(db, dataDir, body.params?.name, body.params?.arguments || {}));
+  if (body?.method === 'tools/call') return response(await callTool(db, dataDir, body.params?.name, body.params?.arguments || {}));
   if (body?.method?.startsWith('notifications/')) return null;
   return { jsonrpc: '2.0', id, error: { code: -32601, message: 'Method not found' } };
 }

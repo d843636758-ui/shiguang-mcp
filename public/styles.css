@@ -80,6 +80,13 @@ main { width: min(1180px, calc(100% - 40px)); margin: 0 auto; }
 .empty-state { position: absolute; inset: 0; display: grid; place-items: center; padding: 30px; text-align: center; color: var(--ink-soft); }
 .curve-legend { display: flex; justify-content: space-between; gap: 18px; margin-top: 14px; color: var(--ink-soft); font-size: .76rem; }
 .dot { width: 8px; height: 8px; display: inline-block; border-radius: 50%; margin-right: 7px; }.dot.coral { background: var(--coral); }
+.reading-list { display: grid; gap: 8px; margin-top: 24px; }
+.reading-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 12px 14px; border: 1px solid var(--line); border-radius: var(--radius-sm); background: rgba(255,253,248,.5); }
+.reading-row-details strong, .reading-row-details span { display: block; }
+.reading-row-details strong { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 500; }
+.reading-row-details span, .reading-list-empty { color: var(--ink-soft); font-size: .76rem; }
+.delete-reading { flex: 0 0 auto; border: 0; border-bottom: 1px solid var(--line); padding: 6px 0; background: transparent; color: #a44137; cursor: pointer; }
+.reading-list-empty { margin-top: 22px; text-align: center; }
 
 .meal-list { display: grid; gap: 34px; }
 .meal-entry { display: grid; grid-template-columns: 74px minmax(220px, .75fr) minmax(0, 1.35fr); gap: 24px; padding-bottom: 34px; border-bottom: 1px solid var(--line); }

@@ -144,6 +144,11 @@ async function api(req, res, url) {
     );
     return json(res, 201, db.prepare('SELECT * FROM glucose_readings WHERE id=?').get(id));
   }
+  if (url.pathname.startsWith('/api/glucose/') && req.method === 'DELETE') {
+    const id = url.pathname.slice('/api/glucose/'.length);
+    const result = db.prepare('DELETE FROM glucose_readings WHERE id=?').run(id);
+    return result.changes ? json(res, 200, { deleted: true }) : json(res, 404, { error: '没有找到这条血糖记录' });
+  }
   if (url.pathname.startsWith('/api/photos/') && req.method === 'GET') {
     const id = url.pathname.slice('/api/photos/'.length);
     const meal = db.prepare('SELECT photo_path, photo_mime FROM meals WHERE id=?').get(id);
@@ -185,7 +190,7 @@ const server = createServer(async (req, res) => {
       if (a.length !== b.length || !timingSafeEqual(a, b)) return json(res, 404, { error: 'Not found' });
       if (req.method === 'GET') { res.writeHead(405, { Allow: 'POST' }); return res.end(); }
       if (req.method !== 'POST') return json(res, 405, { error: 'Method not allowed' });
-      const result = handleMcp(db, dataDir, await bodyJson(req, 2 * 1024 * 1024));
+      const result = await handleMcp(db, dataDir, await bodyJson(req, 2 * 1024 * 1024));
       if (result === null) { res.writeHead(202); return res.end(); }
       return json(res, 200, result, { 'Access-Control-Allow-Origin': 'https://chatgpt.com' });
     }
