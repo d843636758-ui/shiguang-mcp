@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#f6f3eb">
   <meta name="description" content="私密记录每一餐与餐前餐后血糖">
   <title>食光曲线</title>
-  <link rel="stylesheet" href="/styles.css?v=20261020-3">
+  <link rel="stylesheet" href="/styles.css?v=20261021-1">
 </head>
 <body>
   <div class="grain" aria-hidden="true"></div>
@@ -90,7 +90,7 @@
     <form id="mealForm" method="dialog">
       <div class="dialog-head"><div><p>留住这一餐</p><h2>记一餐</h2></div><button type="button" data-close aria-label="关闭">×</button></div>
       <label class="photo-picker" for="mealPhoto">
-        <input id="mealPhoto" type="file" accept="image/jpeg,image/png,image/webp" capture="environment">
+        <input id="mealPhoto" type="file" accept="image/*">
         <img id="photoPreview" alt="餐食照片预览" hidden>
         <span id="photoPrompt"><b>＋</b><strong>拍照或选一张餐照</strong><small>会在手机里压缩并去掉位置等元数据</small></span>
       </label>
@@ -136,6 +136,6 @@
   </template>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="/app.js?v=20261020-3" type="module"></script>
+  <script src="/app.js?v=20261021-1" type="module"></script>
 </body>
 </html>
